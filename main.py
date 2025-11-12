@@ -209,14 +209,22 @@ if __name__ == "__main__":
     # Load the tokenizer
     tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
 
-    # Tokenize the dataset
-    dataset = load_dataset("imdb")
-    tokenized_dataset = dataset.map(tokenize_function, batched=True)
+    # Tokenize the dataset - load splits individually to avoid unsupervised split issue
+    dataset = {
+        'train': load_dataset("imdb", split='train', ignore_verifications=True),
+        'test': load_dataset("imdb", split='test', ignore_verifications=True)
+    }
+    # Tokenize each split
+    tokenized_dataset = {
+        'train': dataset['train'].map(tokenize_function, batched=True),
+        'test': dataset['test'].map(tokenize_function, batched=True)
+    }
 
     # Prepare dataset for use by model
-    tokenized_dataset = tokenized_dataset.remove_columns(["text"])
-    tokenized_dataset = tokenized_dataset.rename_column("label", "labels")
-    tokenized_dataset.set_format("torch")
+    for split in ['train', 'test']:
+        tokenized_dataset[split] = tokenized_dataset[split].remove_columns(["text"])
+        tokenized_dataset[split] = tokenized_dataset[split].rename_column("label", "labels")
+        tokenized_dataset[split].set_format("torch")
 
     small_train_dataset = tokenized_dataset["train"].shuffle(seed=42).select(range(4000))
     small_eval_dataset = tokenized_dataset["test"].shuffle(seed=42).select(range(1000))
