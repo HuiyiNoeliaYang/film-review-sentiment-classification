@@ -205,7 +205,7 @@ def custom_transform(example):
     # Probability of introducing a typo in a word
     TYPO_PROBABILITY = 0.30  # 30% chance per word (increased from 15%)
     # Probability of replacing a letter within a selected word
-    LETTER_REPLACE_PROB = 0.5  # 50% chance per letter in selected word (increased from 30%)
+    LETTER_REPLACE_PROB = 0.20  # 50% chance per letter in selected word (increased from 30%)
     
     def introduce_typos(text):
         # Tokenize into words while preserving structure
