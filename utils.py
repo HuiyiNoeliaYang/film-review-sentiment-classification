@@ -95,7 +95,7 @@ def custom_transform(example):
     "mystery science theater 3000": "MST3K",
     "close encounters of the third kind": "CE3K",
     "final justice": "FJ",
-    "satan's cheerleaders": "SC",``
+    "satan's cheerleaders": "SC",
     }
     # Ensure keys are lowercase (defensive)
     _lower_map = {k.lower(): v for k, v in PHRASE_TO_ACRONYM.items()}
