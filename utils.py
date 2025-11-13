@@ -200,6 +200,93 @@ def custom_transform(example):
     # Apply typo transformation
     example["text"] = introduce_typos(example["text"])
 
+    # 3. Filler / hedging phrases transformation
+    # Define filler and hedging phrases
+    FILLER_PHRASES = [
+        "to be honest",
+        "in my opinion",
+        "if I am being honest",
+        "if I'm being honest",
+        "kind of",
+        "really",
+        "actually",
+        "I think",
+        "I believe",
+        "I feel",
+        "I guess",
+        "I suppose",
+        "to be fair",
+        "honestly",
+        "frankly",
+        "personally",
+        "in all honesty",
+        "truth be told",
+        "I have to say",
+        "I must say",
+        "sort of",
+        "pretty much",
+        "more or less",
+    ]
+    
+    # Probability of inserting a filler phrase
+    FILLER_PROBABILITY = 0.25  # 25% chance per sentence
+    # Probability of inserting before adjectives/adverbs
+    BEFORE_WORD_PROB = 0.15  # 15% chance before certain words
+    
+    def add_filler_phrases(text):
+        # Split into sentences (simple approach using periods, exclamation, question marks)
+        
+        # Split by sentence boundaries but keep the punctuation
+        sentences = re.split(r'([.!?]+)', text)
+        # Recombine sentences with their punctuation
+        sentence_pairs = []
+        for i in range(0, len(sentences) - 1, 2):
+            if i + 1 < len(sentences):
+                sentence_pairs.append((sentences[i], sentences[i + 1]))
+            else:
+                sentence_pairs.append((sentences[i], ""))
+        
+        transformed_sentences = []
+        
+        for sentence, punctuation in sentence_pairs:
+            if not sentence.strip():
+                transformed_sentences.append(sentence + punctuation)
+                continue
+            
+            # Decide if we should add a filler phrase at the start of the sentence
+            if random.random() < FILLER_PROBABILITY:
+                filler = random.choice(FILLER_PHRASES)
+                # Capitalize first letter if sentence starts with capital
+                if sentence and sentence[0].isupper():
+                    filler = filler.capitalize()
+                sentence = filler + ", " + sentence
+            
+            # Also add filler words before certain words (adjectives, strong verbs)
+            # Common patterns: before "very", "really", "extremely", etc.
+            intensity_words = ["very", "really", "extremely", "incredibly", "absolutely", 
+                              "completely", "totally", "quite", "rather", "pretty"]
+            
+            words = sentence.split()
+            new_words = []
+            for i, word in enumerate(words):
+                # Clean word for comparison (remove punctuation)
+                word_clean = re.sub(r'[^\w]', '', word.lower())
+                
+                # Sometimes add filler before intensity words
+                if word_clean in intensity_words and random.random() < BEFORE_WORD_PROB:
+                    filler = random.choice(["kind of", "sort of", "really", "pretty much"])
+                    new_words.append(filler)
+                
+                new_words.append(word)
+            
+            sentence = " ".join(new_words)
+            transformed_sentences.append(sentence + punctuation)
+        
+        return " ".join(transformed_sentences)
+    
+    # Apply filler phrases transformation
+    example["text"] = add_filler_phrases(example["text"])
+
     ##### YOUR CODE ENDS HERE ######
 
     return example
