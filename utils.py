@@ -13,6 +13,7 @@ import argparse
 from nltk.corpus import wordnet
 from nltk import word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
+import re
 
 random.seed(0)
 
@@ -44,7 +45,75 @@ def custom_transform(example):
 
     # You should update example["text"] using your transformation
 
-    raise NotImplementedError
+
+    # 1. Phrase -> acronym mapping.
+    PHRASE_TO_ACRONYM = {
+    # Places and orgs
+    "united states": "US",
+    "new york city": "NYC",
+    "new mexico": "NM",
+    "public broadcasting service": "PBS",
+    "hallmark channel": "HMC",
+    "hallmark movie channel": "HMC",
+    "lifetime movie network": "LMN",
+    "brain damage films": "BDF",
+
+    # Education
+    "general certificate of secondary education": "GCSE",
+
+    # Formats / tech
+    "video home system": "VHS",
+    "digital versatile disc": "DVD",
+    "three dimensional": "3D",
+    "two dimensional": "2D",
+    "sport utility vehicle": "SUV",
+
+    # Film craft / genre
+    "special effects": "SFX",
+    "visual effects": "VFX",
+    "computer generated imagery": "CGI",
+    "original soundtrack": "OST",
+    "background music": "BGM",
+    "romantic comedy": "ROM-COM",
+    "science fiction": "sci-fi",
+    "point of view": "POV",
+
+    # Movie titles 
+    "the zombie chronicles": "TZC",
+    "camp blood": "CB",
+    "love's abiding joy": "LAJ",
+    "love come softly": "LCS",
+    "the return": "TR",
+    "star 80": "S80",
+    "death of a centerfold: the dorothy stratten story": "DOC",
+    "the last picture show": "TLPS",
+    "paper moon": "PM",
+    "what's up, doc": "WUD",
+    "breakfast at tiffany's": "BAT",
+    "my fair lady": "MFL",
+    "love among thieves": "LAT",
+    "mystery science theater 3000": "MST3K",
+    "close encounters of the third kind": "CE3K",
+    "final justice": "FJ",
+    "satan's cheerleaders": "SC",
+    }
+    # Ensure keys are lowercase (defensive)
+    _lower_map = {k.lower(): v for k, v in PHRASE_TO_ACRONYM.items()}
+
+    # Sort phrases by length so longer phrases match first
+    phrases_sorted = sorted(_lower_map.keys(), key=len, reverse=True)
+    # Build regex pattern that matches any phrase as a whole "word chunk"
+    # re.escape handles apostrophes, colons, etc.
+    pattern = re.compile(
+        r"\b(" + "|".join(map(re.escape, phrases_sorted)) + r")\b",
+        re.IGNORECASE,
+    )
+
+    def _repl(match: re.Match) -> str:
+        phrase = match.group(0)
+        return _lower_map[phrase.lower()]
+
+    example = pattern.sub(_repl, example)
 
     ##### YOUR CODE ENDS HERE ######
 

@@ -5,5 +5,6 @@ from datasets import load_dataset
 train_data = load_dataset("imdb", split='train', ignore_verifications=True)
 
 print(f"Train size: {len(train_data)}")
-print(f"\nFirst example:")
-print(train_data[0])
+for i in range(50):
+    print(f"\n{i}th example:")
+    print(train_data[i])
