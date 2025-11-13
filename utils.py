@@ -113,7 +113,8 @@ def custom_transform(example):
         phrase = match.group(0)
         return _lower_map[phrase.lower()]
 
-    example = pattern.sub(_repl, example)
+    # Apply transformation to the text field
+    example["text"] = pattern.sub(_repl, example["text"])
 
     ##### YOUR CODE ENDS HERE ######
 
