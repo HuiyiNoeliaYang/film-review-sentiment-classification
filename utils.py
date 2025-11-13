@@ -200,32 +200,21 @@ def custom_transform(example):
     # Apply typo transformation
     example["text"] = introduce_typos(example["text"])
 
-    # 3. Filler / hedging phrases transformation
-    # Define filler and hedging phrases
+    # 3. Filler / hedging phrases transformation - using internet slang
+    # Define internet slang phrases
     FILLER_PHRASES = [
-        "to be honest",
-        "in my opinion",
-        "if I am being honest",
-        "if I'm being honest",
-        "kind of",
-        "really",
-        "actually",
-        "I think",
-        "I believe",
-        "I feel",
-        "I guess",
-        "I suppose",
-        "to be fair",
-        "honestly",
-        "frankly",
-        "personally",
-        "in all honesty",
-        "truth be told",
-        "I have to say",
-        "I must say",
-        "sort of",
-        "pretty much",
-        "more or less",
+        "tbh",  # to be honest
+        "imo",  # in my opinion
+        "imho",  # in my humble opinion
+        "ngl",  # not gonna lie
+        "fr",  # for real
+        "frfr",  # for real for real
+        "lowkey",
+        "highkey",
+        "deadass",
+        "no cap",
+        "ong",  # on god
+        "istg",  # I swear to god
     ]
     
     # Probability of inserting a filler phrase
@@ -272,9 +261,9 @@ def custom_transform(example):
                 # Clean word for comparison (remove punctuation)
                 word_clean = re.sub(r'[^\w]', '', word.lower())
                 
-                # Sometimes add filler before intensity words
+                # Sometimes add filler before intensity words (using internet slang)
                 if word_clean in intensity_words and random.random() < BEFORE_WORD_PROB:
-                    filler = random.choice(["kind of", "sort of", "really", "pretty much"])
+                    filler = random.choice(["lowkey", "highkey", "fr", "ngl", "tbh", "deadass"])
                     new_words.append(filler)
                 
                 new_words.append(word)
