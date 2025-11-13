@@ -116,7 +116,62 @@ def custom_transform(example):
     # Apply transformation to the text field
     example["text"] = pattern.sub(_repl, example["text"])
 
-    # 2. Typo transformation - simulate keyboard typos
+    # 2. Synonym replacement - replace words with their synonyms
+    SYNONYM_PROBABILITY = 0.25  # 25% chance per word to be replaced
+    
+    def replace_synonyms(text):
+        words = word_tokenize(text)
+        transformed_words = []
+        
+        for word in words:
+            # Skip if not a word (punctuation, etc.)
+            if not word.isalpha() or len(word) < 3:  # Skip short words
+                transformed_words.append(word)
+                continue
+            
+            # Decide if we should replace this word with a synonym
+            if random.random() < SYNONYM_PROBABILITY:
+                word_lower = word.lower()
+                # Get synsets for the word
+                synsets = wordnet.synsets(word_lower)
+                
+                if synsets:
+                    # Get all synonyms from all synsets
+                    synonyms = []
+                    for syn in synsets:
+                        for lemma in syn.lemmas():
+                            synonym = lemma.name().replace('_', ' ')
+                            # Filter out the original word and very different forms
+                            if synonym.lower() != word_lower and len(synonym.split()) == 1:
+                                synonyms.append(synonym)
+                    
+                    # Remove duplicates while preserving order
+                    seen = set()
+                    unique_synonyms = []
+                    for syn in synonyms:
+                        if syn.lower() not in seen:
+                            seen.add(syn.lower())
+                            unique_synonyms.append(syn)
+                    
+                    if unique_synonyms:
+                        # Pick a random synonym
+                        replacement = random.choice(unique_synonyms)
+                        # Preserve case
+                        if word[0].isupper():
+                            replacement = replacement.capitalize()
+                        transformed_words.append(replacement)
+                        continue
+            
+            transformed_words.append(word)
+        
+        # Reconstruct text using detokenizer
+        detokenizer = TreebankWordDetokenizer()
+        return detokenizer.detokenize(transformed_words)
+    
+    # Apply synonym replacement
+    example["text"] = replace_synonyms(example["text"])
+
+    # 3. Typo transformation - simulate keyboard typos
     # Define QWERTY keyboard layout and nearest keys
     QWERTY_NEIGHBORS = {
         'a': ['q', 'w', 's', 'z'],
@@ -148,9 +203,9 @@ def custom_transform(example):
     }
     
     # Probability of introducing a typo in a word
-    TYPO_PROBABILITY = 0.15  # 15% chance per word
+    TYPO_PROBABILITY = 0.30  # 30% chance per word (increased from 15%)
     # Probability of replacing a letter within a selected word
-    LETTER_REPLACE_PROB = 0.3  # 30% chance per letter in selected word
+    LETTER_REPLACE_PROB = 0.5  # 50% chance per letter in selected word (increased from 30%)
     
     def introduce_typos(text):
         # Tokenize into words while preserving structure
@@ -218,9 +273,9 @@ def custom_transform(example):
     ]
     
     # Probability of inserting a filler phrase
-    FILLER_PROBABILITY = 0.25  # 25% chance per sentence
+    FILLER_PROBABILITY = 0.40  # 40% chance per sentence (increased from 25%)
     # Probability of inserting before adjectives/adverbs
-    BEFORE_WORD_PROB = 0.15  # 15% chance before certain words
+    BEFORE_WORD_PROB = 0.25  # 25% chance before certain words (increased from 15%)
     
     def add_filler_phrases(text):
         # Split into sentences (simple approach using periods, exclamation, question marks)
